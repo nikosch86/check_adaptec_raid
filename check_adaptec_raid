@@ -84,6 +84,9 @@ sub displayUsage {
     given controller a ZMM must be present per default.\n";
     print "  [--nosudo]
     Turn off using sudo.\n";
+    print "  [--check-via-ssh <hostname>]
+      check a host remotely via ssh, requires passwordless public key access to
+      host and arcconf installed.\n";
 }
 
 # Displays a short Help text for the user
@@ -843,7 +846,7 @@ sub getPerfString{
 }
 
 MAIN: {
-	my ($arcconf, $sudo, $noSudo, $version, $exitCode);
+	my ($arcconf, $sudo, $noSudo, $version, $exitCode, $CHECK_VIA_SSH);
 	# Create default sensor arrays and push them to status level
 	my @statusLevel_a ;
 	my $status_str = 'OK';
@@ -878,6 +881,7 @@ MAIN: {
 		'p|path=s' => \$arcconf,
 		'z|ZMM=i' => \$zmm,
 		'nosudo' => \$noSudo,
+                'check-via-ssh=s' => \$CHECK_VIA_SSH,
 	))){
 		print $NAME . " Version: " . $VERSION ."\n";
 		displayUsage();
@@ -886,10 +890,11 @@ MAIN: {
 	if(defined($version)){ print $NAME . "\nVersion: ". $VERSION . "\n"; }
 	# Check arcconf tool
 	if(!defined($arcconf)){
-		if($platform eq 'linux'){
+        if (defined($CHECK_VIA_SSH)) {
+               $arcconf = "ssh root@" . $CHECK_VIA_SSH . " /usr/sbin/arcconf";
+        } elsif($platform eq 'linux'){
 			$arcconf = which('arcconf');
-		}
-		else{
+		} else{
 			$arcconf = which('arcconf.exe');
 		}
 	}
